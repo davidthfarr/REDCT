@@ -13,11 +13,11 @@ The repo is organized as follows:
 
 We provide a few command line tools to make implementing and evaluation easier. All of these scripts are designed to run from this directory. We also provide some examples scripts in the scripts directory.
 
-### LLM Labeling At 'the Hub'
+### LLM Labeling
 
 ### Classifier Training for Edge Deployment
 
-### Model Evaluation and Testing
+### Edge Model Evaluation and Testing
 
 ## Data
 
