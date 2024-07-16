@@ -1,0 +1,8 @@
+pytorch
+pandas
+numpy
+transformers
+scikit-learn
+tiktoken
+accelerate
+openai
