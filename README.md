@@ -1,6 +1,6 @@
-# RED-CT: A Systems Design Methodology to Using LLM-labeled Data to Train and Deploy Edge Classifiers for Computational Social Science
+# RED-CT: Using LLM-labeled Data to Train and Deploy Edge Classifiers
 
-This repository contains the code for [RED-CT: A Systems Design Methodology to Using LLM-labeled Data to Train and Deploy Edge Classifiers for Computational Social Science](google.com).
+This repository contains the code for [RED-CT: A Systems Design Methodology to Using LLM-labeled Data to Train and Deploy Edge Classifiers for Computational Social Science](./TODO_add_path).
 
 The repo is organized as follows:
 - `./src/` contains the code for research and development.
@@ -18,3 +18,7 @@ We provide a few command line tools to make implementing and evaluation easier. 
 ### Classifier Training for Edge Deployment
 
 ### Model Evaluation and Testing
+
+## Data
+
+A note about all the datasets and their sources.
