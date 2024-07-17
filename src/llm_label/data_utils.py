@@ -5,6 +5,8 @@ the LLM labeling process.
 
 """
 
+import os
+
 from prompters.misinfo_prompter import MisinfoPrompter
 from prompters.stance_prompter import StancePrompter
 from prompters.humour_prompter import HumourPrompter
@@ -184,15 +186,6 @@ def is_tsv_path(path):
     Helper function to see if path has tsv handle.
     """
     return True if path[-4:] == ".tsv" else False
-
-def read_key(path_to_key_file):
-    """
-    Given a text file with only the API key in it. This function reads
-    the key into a string.
-    """
-    with open(path_to_key_file, "r") as f:
-        key = f.read()
-    return key
 
 def check_gpu():
     if torch.cuda.is_available():

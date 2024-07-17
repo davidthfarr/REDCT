@@ -84,7 +84,11 @@ def main():
     args = get_cli_args()
 
     # Get HF token
-    hf_token = read_key("hf_secret.txt")
+    hf_token = os.get_env("HF_TOKEN")
+    
+    if hf_token is None:
+        print(f"Could not get huggingface token environment variable! {err}.")
+        return 1
 
     # Ensure outpath exists
     if not os.path.exists(args.o):

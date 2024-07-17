@@ -58,8 +58,12 @@ def main():
     if not os.path.exists(args.o):
         os.makedirs(args.o)
 
-    # Get OpenAI API token
-    api_key = read_key("secret.txt")
+    # Get OpenAI API token 
+    api_key = os.get_env("OPENAI_API_TOKEN")
+
+    if api_key is None:
+        print(f"Could not get Open AI API token environment variable! {err}.")
+        return 1
 
     # Load data
     data_path, column_map, label_map, prompter = get_data_args(args.d)
