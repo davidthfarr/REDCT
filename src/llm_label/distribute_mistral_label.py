@@ -21,7 +21,7 @@ import multiprocessing as mp
 from functools import partial
 
 from local_classifier import LocalClassifier
-from data_utils import read_data_to_df, get_meta_data, get_metrics, get_data_args, check_gpu
+from data_utils import read_data_to_df, get_metrics, get_data_args, check_gpu
 
 def get_cli_args():
     """
