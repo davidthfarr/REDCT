@@ -16,134 +16,20 @@ from scipy.special import expit
 from sklearn.metrics import accuracy_score, f1_score
 
 from openai_api_interface import OpenAPI, OpenAPI_CoT
-from stance_prompter import StancePrompter
-from misinfo_prompter import MisinfoPrompter
-from ideology_prompter import IdeologyPrompter
 
-def read_data_to_df(path, column_map = None, label_map = None):
-    """
-    Helper function to read DataFrame from path.
-    """
-    if is_csv_path(path):
-        try:
-            raw_df = pd.read_csv(path)
-
-        except UnicodeDecodeError:
-            raw_df = pd.read_csv(path, encoding="ISO-8859-1")
-
-    elif is_tsv_path(path):
-        try:
-            raw_df = pd.read_csv(path, delimiter = "\t")
-
-        except UnicodeDecodeError:
-            raw_df = pd.read_tsv(path, delimiter = "\t", encoding="ISO-8859-1")
-
-    else:
-        try:
-            raw_df = pd.read_table(path)
-
-        except UnicodeDecodeError:
-            raw_df = pd.read_table(path, encoding="ISO-8859-1")
-
-    # Rename labels if neccesary
-    if column_map is not None and label_map is not None:
-        lab_col = column_map["label"]
-        raw_df[lab_col] = raw_df[lab_col].apply(lambda x: label_map[x])
-
-    return raw_df
-
-def get_metrics(res_df, label_logprobs, run_time, column_map):
-    """
-    Helper function that writes out a pkl of metrics.
-
-    Args: 
-        res_df (pd.DataFrame): The dataframe of the column map.
-        label_logprobs (List[np.ndarry])
-        run_time (float): The time it took to run the program.
-        column_map (dict[str:str]): The column map.
-    """
-    metrics = {}
-    lab_col = column_map["label"]
-
-    metrics["label_acc"] = accuracy_score(res_df[lab_col], res_df["LLM_top_logit"])
-    metrics["label_f1"] = f1_score(res_df[lab_col], res_df["LLM_top_logit"], average= 'weighted')
-    metrics["logits_clean"] = label_logprobs
-    metrics["run_time"] = run_time
-
-    return metrics
-
-def get_logprobs(top_logprobs, token_indicators):
-    """
-    Function to extract the log probs for each token indicator.
-
-    Args:
-        top_logprobs (List[Tuple()]): List of the top logits in tuple (token, logit)
-        token_indicators (List[str]): Sometimes the tokenizer does not contain 
-            the full token for the label. We include token_indicators to allow
-            the user to specify indicators for the first token that correspond
-            to labels for the LLM.
-
-    Returns: 
-        vec (ndarray): Array where n^th index corresponds to logprob of the n^th
-            token in token_indicators.
-    """
-    vec = np.repeat(np.nan, (len(token_indicators),))
-    
-    token2logp = {}
-    for token, logp in top_logprobs:
-        if token not in token2logp:
-            token2logp[token] = logp
-
-    min_logprob = min(token2logp.values()) - 1
-
-    for idx, token in enumerate(token_indicators):
-            vec[idx] = token2logp.get(token, min_logprob)
-
-    return vec
-
-def get_meta_data(args):
-    """
-    Helper function to get metadata from the argument parser.
-    """
-    meta = {}
-    meta["data"] = args.d 
-    meta["prompt_type"] = args.p 
-    meta["n"] = args.n
-    meta["seed"] = args.seed
-    meta["model"] = args.m
-
-    return meta
-
-def is_csv_path(path):
-    """
-    Helper function to see if path has csv handle.
-    """
-    return True if path[-4:] == ".csv" else False
-
-def is_tsv_path(path):
-    """
-    Helper function to see if path has tsv handle.
-    """
-    return True if path[-4:] == ".tsv" else False
-
-def read_key(path_to_key_file):
-    """
-    Given a text file with only the OpenAI API key in it. This function reads
-    the key into a string.
-    """
-    with open(path_to_key_file, "r") as f:
-        key = f.read()
-    return key
+from data_utils import read_data_to_df, get_meta_data, get_metrics, get_logprobs
 
 def get_cli_args():
     """
     A helper function to get the command line arguments for the script.
     """
-    parser = argparse.ArgumentParser(description="Use an LLM for Stance Classification!")
+    desc = "Use an OpenAI LLM for data labeling!"
+    parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('-o', type=str,
                         help='Output directory', required=True)
     parser.add_argument('-d', type=str,
-                         help='Datasets supported: "SemEval2016", "Misinfo", "ideology".', 
+                         help='Datasets supported: "SemEval2016", "Misinfo", ' \
+                              '"ibc", or "humour".', 
                          required=True)
     parser.add_argument('-p', type=str,
                         help= 'Prompting type: "zero" or "few"',
@@ -172,33 +58,16 @@ def main():
     if not os.path.exists(args.o):
         os.makedirs(args.o)
 
-    # Read API key
+    # Get OpenAI API token
     api_key = read_key("secret.txt")
 
-    # Get data information
-    if args.d == "SemEval2016":
-        data_path = "../data/SemEval2016/trainingdata-all-annotations.txt"
-        column_map = {"label": "Stance", "text": "Tweet", "target": "Target"}
-        label_map = {"AGAINST": "Against", "FAVOR": "For", "NONE": "Neutral"}
-        prompter = StancePrompter(label_map.values(), column_map)
+    # Load data
+    data_path, column_map, label_map, prompter = get_data_args(args.d)
 
-    elif args.d == "Misinfo":
-        data_path = "../data/misinfo/train.tsv"
-        column_map = {"label": "gold_label", "text": "headline"}
-        label_map = {"misinfo": "Misinformation", "real": "Trustworthy"}
-        prompter = MisinfoPrompter(label_map.values(), column_map)
-
-    elif args.d == "ideology":
-        data_path = "../data/ideology/train.csv"
-        column_map = {"label": "label", "text": "articles"}
-        label_map = {"liberal": "Liberal", "conservative": "Conservative"}
-        prompter = IdeologyPrompter(label_map.values(), column_map)
-
-    else:
-        print(f"Data set invalid: {args.d}!")
+    if data_path is None:
+        print("Dataset name invalid! Exiting Program.")
         return 1
 
-    # Load data
     data_df = read_data_to_df(data_path, column_map, label_map)
 
     # Sub-Sample data if necessary

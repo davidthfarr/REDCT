@@ -4,6 +4,8 @@ A CLI that provides an interface to the local_classifier. This script will
 distribute the dataset to multiple GPUs. Each GPU will hold a copy of the model
 and a subset of the data to label. 
 
+Assumes user has access to many GPU that can run inference with Mistral7B.
+
 """
 
 import argparse
@@ -18,14 +20,8 @@ import numpy as np
 import multiprocessing as mp
 from functools import partial
 
-from misinfo_prompter import MisinfoPrompter
-from stance_prompter import StancePrompter
-from ideology_prompter import IdeologyPrompter
-from media_prompter import MediaPrompter
-from humour_prompter import HumourPrompter
-
 from local_classifier import LocalClassifier
-from openai_label import read_key, read_data_to_df, get_metrics
+from data_utils import read_data_to_df, get_meta_data, get_metrics, get_data_args, check_gpu
 
 def get_cli_args():
     """
@@ -45,9 +41,6 @@ def get_cli_args():
     parser.add_argument('--seed', type=int, default=None,
                        help="Random seed used for sampling")
     return parser.parse_args()
-
-# Helper functions for labeling with multiprocessing
-
 
 def distribute_labeling(labeling_function, data_df, devices):
     """
@@ -80,86 +73,28 @@ def main():
     """
     The entry point for our program!
     """
-    # Ensure we have a GPU
-    if torch.cuda.is_available():
-        device_count = torch.cuda.device_count()
-        device_names = [torch.cuda.get_device_name(i) for i in range(device_count)]
-        print(f"Number of available GPUs: {device_count}")
-        for i, device_name in enumerate(device_names):
-            print(f"Using GPU {i}: {device_name}")
-        devices = [torch.device(f"cuda:{i}") for i in range(device_count)]
+    # Check for GPUs
+    devices = check_gpu()
 
-    else:
+    if devices is None:
         print("GPU is not available. Exiting Program.")
         return 1
 
     # Get CLI arguments
     args = get_cli_args()
 
+    # Get HF token
+    hf_token = read_key("hf_secret.txt")
+
     # Ensure outpath exists
     if not os.path.exists(args.o):
         os.makedirs(args.o)
 
-    # Load Data
-    if args.d == "SemEval2016" or args.d == "SemEval2016-test":
-        column_map = {"label": "Stance", "text": "Tweet", "target": "Target"}
-        label_map = {"AGAINST": "Against", "FAVOR": "For", "NONE": "Neutral"}
-        prompter = StancePrompter(label_map.values(), column_map)
+    # Load data
+    data_path, column_map, label_map, prompter = get_data_args(args.d)
 
-        # Check if train or test
-        if args.d == "SemEval2016":
-            data_path = "../data/SemEval2016/trainingdata-all-annotations.txt"
-            
-        else:
-            data_path = "../data/SemEval2016/testdata-taskA-all-annotations.txt"
-
-    elif args.d == "Misinfo" or args.d == "Misinfo-test":
-        column_map = {"label": "gold_label", "text": "headline"}
-        label_map = {"misinfo": "Misinformation", "real": "Trustworthy"}
-        prompter = MisinfoPrompter(label_map.values(), column_map)
-
-        # Check if train or test
-        if args.d == "Misinfo":
-            data_path = "../data/misinfo/train.tsv"
-            
-        else:
-            data_path = "../data/misinfo/test.tsv"
-
-    elif args.d == "ideology" or args.d == "ideology-test":
-        column_map = {"label": "label", "text": "articles"}
-        label_map = {"liberal": "Liberal", "conservative": "Conservative"}
-        prompter = IdeologyPrompter(label_map.values(), column_map)
-
-        if args.d == "ideology":
-            data_path = "../data/ideology/train.csv"
-
-        else:
-            data_path = "../data/ideology/test.csv"
-
-    elif args.d == "media" or args.d == "media-test":
-        column_map = {"label": "label", "text": "text"}
-        label_map = {"left": "Left", "center": "Center", "right": "Right"}
-        prompter = MediaPrompter(label_map.values(), column_map)
-
-        if args.d == "media":
-            data_path = "../data/media/train_cleaned.csv"
-
-        else:
-            data_path = "../data/media/test_cleaned.csv"
-
-    elif args.d == "humour" or args.d == "humour-test":
-        column_map = {"label": "label", "text": "joke"}
-        label_map = {0: "False", 1: "True"}
-        prompter = HumourPrompter(label_map.values(), column_map)
-
-        if args.d == "humour":
-            data_path = "../data/humour/train.csv"
-
-        else:
-            data_path = "../data/humour/test.csv"
-
-    else:
-        print("Data set invalid! Exiting Program.")
+    if data_path is None:
+        print("Dataset name invalid! Exiting Program.")
         return 1
 
     data_df = read_data_to_df(data_path, column_map, label_map)
@@ -168,13 +103,8 @@ def main():
     if args.n > 0 and args.n <= data_df.shape[0]:
         data_df = data_df.sample(n = args.n , random_state = args.seed)
 
-
-    # The model will always be Mistral
-    model_name = "mistralai/Mistral-7B-Instruct-v0.2"
-    hf_token = read_key("hf_secret.txt")
-
-    # Run inference
     print("Getting Labels (this may take a few moments)...")
+    model_name = "mistralai/Mistral-7B-Instruct-v0.2"
     start_time = time.time()
     classifier = LocalClassifier(model_name, label_map.values(), hf_token)
     
