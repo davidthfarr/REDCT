@@ -49,7 +49,7 @@ def get_data_args(dataset_name):
         prompter = MisinfoPrompter(label_map.values(), column_map)
 
         # Check if train or test
-        if dataset_name == "Misinfo":
+        if dataset_name == "misinfo":
             data_path = "../data/misinfo/train.tsv"
             
         else:
@@ -78,7 +78,7 @@ def get_data_args(dataset_name):
             data_path = "../data/IBC/test_ibc.csv"
 
     else:
-        return None, None, None, None
+        data_path, column_map, label_map, prompter = None, None, None, None
 
     return data_path, column_map, label_map, prompter
 

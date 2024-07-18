@@ -3,23 +3,19 @@
 Python module that provides testing for the edge model.
 
 """
+
 import os
-import sys
 import json
 import argparse
 import logging
 import torch
 import numpy as np
-import pandas as pd
 from sklearn import metrics
 from torch.utils.data import DataLoader
 from transformers import RobertaModel, DistilBertTokenizer, RobertaTokenizer
 
 from bert_classifiers import BertBasedClassifier, DistilBertClassifier
-from data_utils import DatasetLabeledByLLM
-from data_utils import load_semeval_test, load_misinfo_test, load_ideology_test
-from data_utils import load_media_test, load_humour_test, load_ibc_test
-from train import check_gpu
+from data_utils import DatasetLabeledByLLM, check_gpu, load_test_set
 
 def test(model, dataloader, device):
     """
@@ -87,26 +83,9 @@ def main():
     """
     args = get_cli_args()
 
-    if args.d == "SemEval2016":
-        test_tweets, test_labels = load_semeval_test()
+    test_tweets, test_labels = load_test_set(args.d)
 
-    elif args.d == "Misinfo":
-        test_tweets, test_labels = load_misinfo_test()
-
-    elif args.d == "ideology":
-        test_tweets, test_labels = load_ideology_test()
-
-    elif args.d == "media":
-        test_tweets, test_labels = load_media_test()
-
-    elif args.d == "humour":
-        test_tweets, test_labels = load_humour_test()
-
-    elif args.d == "ibc":
-        test_tweets, test_labels = load_ibc_test()
-
-    else:
-        print("Data set invalid!")
+    if test_tweets is None:
         return 1
 
     try:
@@ -147,7 +126,8 @@ def main():
 
     # Create dataloader
     dummy_weights = np.zeros((len(test_tweets), 1))
-    testset = DatasetLabeledByLLM(test_tweets, test_labels, dummy_weights, tokenizer, args.max_length)
+    testset = DatasetLabeledByLLM(test_tweets, test_labels, dummy_weights, 
+                                  tokenizer, args.max_length)
     test_loader = DataLoader(testset, batch_size = 32, shuffle = False)
 
     # Reload saved model
@@ -157,7 +137,7 @@ def main():
 
     except FileNotFoundError:
         print(f"Failed to model weights at {model_info['model_path']}!",
-              " Ensure path is a subdirectory of current working directory.")
+              " Check current working directory compared to relative path.")
         return 1
 
     # Test model!

@@ -89,20 +89,10 @@ def load_from_LLM(path):
         label_col = "Stance"
         label_map = {"Against": 0, "For": 1, "Neutral": 2}
 
-    elif meta["data"] == "Misinfo":
+    elif meta["data"] == "misinfo":
         text_col = "headline"
         label_col = "gold_label"
         label_map = {"Misinformation": 0, "Trustworthy": 1}
-
-    elif meta["data"] == "ideology":
-        text_col = "articles"
-        label_col = "label"
-        label_map = {"Liberal": 0, "Conservative": 1}
-
-    elif meta["data"] == "media":
-        text_col = "text"
-        label_col = "label"
-        label_map = {"Left": 0, "Center": 1, "Right": 2}
                     
     elif meta["data"] == "humour":
         text_col = "joke"
@@ -113,11 +103,6 @@ def load_from_LLM(path):
         text_col = "sentence"
         label_col = "leaning"
         label_map = {"Conservative": 0, "Neutral": 1, "Liberal": 2}   
-        
-    elif meta["data"] == "IBC":
-        text_col = "sentence"
-        label_col = "leaning"
-        label_map = {"Conservative": 0, "Neutral": 1, "Liberal": 2} 
 
     else:
         print("Oops! Invalid data from LLM found!")
@@ -138,6 +123,34 @@ def load_from_LLM(path):
     data_dict["LLM_labels"] = df["LLM_top_logit"].apply(lambda x: label_map[x]).to_list()
 
     return data_dict
+
+def load_test_set(dataset_name):
+    """ Helper function to load the test dataset that corresponds to dataset name.
+
+    Args:
+        - dataset_name (str): The name of the dataaset.
+    
+    Returns: Tuple of
+        - raw_tweets (List[str]): List of observations.
+        - labels (List[int]): List of integer labels
+    """
+    if dataset_name == "SemEval2016":
+        test_tweets, test_labels = load_semeval_test()
+
+    elif dataset_name == "misinfo":
+        test_tweets, test_labels = load_misinfo_test()
+
+    elif dataset_name == "humour":
+        test_tweets, test_labels = load_humour_test()
+
+    elif dataset_name == "ibc":
+        test_tweets, test_labels = load_ibc_test()
+
+    else:
+        print("Data set invalid!")
+        test_tweets, test_labels = None, None
+
+    return test_tweets, test_labels
 
 def load_semeval_test():
     """ Loads the SemEval2016 test set.
@@ -179,50 +192,6 @@ def load_misinfo_test():
 
     raw_tweets = data["headline"].to_list()
     labels = data["gold_label"].apply(lambda x: label_map[x]).to_list()
-    
-    return raw_tweets, labels
-
-def load_ideology_test():
-    """ Helper function to load the ideology test data.
-    
-    Note: The filepath is hard-coded in this instance and names of labels in 
-        the test data are hard coded to align with the load_from_LLM utility
-        function.
-    
-    Args: None
-    Returns:
-    - raw_text (List(str)): List of raw_text strings encoded as ISO-8859-1
-    - labels (List(Int)): A list of integers which correspond to the label map
-    
-    """
-    file_name = "../data/ideology/test.csv"
-    label_map = {"liberal": 0, "conservative": 1}
-    data = pd.read_csv(file_name)
-    
-    raw_tweets = data["articles"].to_list()
-    labels = data["label"].apply(lambda x: label_map[x]).to_list()
-    
-    return raw_tweets, labels
-
-def load_media_test():
-    """ Helper function to load the ideology test data.
-    
-    Note: The filepath is hard-coded in this instance and names of labels in 
-        the test data are hard coded to align with the load_from_LLM utility
-        function.
-    
-    Args: None
-    Returns:
-    - raw_text (List(str)): List of raw_text strings encoded as ISO-8859-1
-    - labels (List(Int)): A list of integers which correspond to the label map
-    
-    """
-    file_name = "../data/media/test_cleaned.csv"
-    label_map = {"left": 0, "center": 1, "right": 2}
-    data = pd.read_csv(file_name)
-    
-    raw_tweets = data["text"].to_list()
-    labels = data["label"].apply(lambda x: label_map[x]).to_list()
     
     return raw_tweets, labels
 
@@ -379,3 +348,22 @@ def print_label_counts(labels):
     
     for label, count in label_counts.items():
         print(f"Class {label}: {count} observations")
+
+def check_gpu():
+    """
+    A helper function to check for available GPUs.
+    Returns: device (torch.device): A torch device leveraged to
+    """
+    if torch.cuda.is_available():
+        device_count = torch.cuda.device_count()
+        current_device = torch.cuda.current_device()
+        device_name = torch.cuda.get_device_name(current_device)
+        print(f"Number of available GPUs: {device_count}")
+        print(f"Using GPU {current_device}: {device_name}")
+        device = torch.device("cuda")
+
+    else:
+        print("GPU is not available. Using CPU.")
+        device = torch.device("cpu")
+
+    return device

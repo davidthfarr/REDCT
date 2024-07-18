@@ -5,7 +5,6 @@ A python module that trains or fine-tunes the edge model.
 """
 
 import os
-import sys
 import json
 import argparse
 import time
@@ -17,7 +16,7 @@ from torch.utils.data import DataLoader
 from transformers import RobertaModel, DistilBertTokenizer, RobertaTokenizer, get_scheduler
 
 from bert_classifiers import BertBasedClassifier, DistilBertClassifier
-from data_utils import DatasetLabeledByLLM, load_from_LLM, sample_training_data
+from data_utils import DatasetLabeledByLLM, load_from_LLM, sample_training_data, check_gpu
 
 def train(model, dataloader, n_epochs, optimizer, device, use_weights = False):
     """
@@ -91,25 +90,6 @@ def train(model, dataloader, n_epochs, optimizer, device, use_weights = False):
     logs["train_time"] = train_time
 
     return logs
-
-def check_gpu():
-    """
-    A helper function to check for available GPUs.
-    Returns: device (torch.device): A torch device leveraged to
-    """
-    if torch.cuda.is_available():
-        device_count = torch.cuda.device_count()
-        current_device = torch.cuda.current_device()
-        device_name = torch.cuda.get_device_name(current_device)
-        print(f"Number of available GPUs: {device_count}")
-        print(f"Using GPU {current_device}: {device_name}")
-        device = torch.device("cuda")
-
-    else:
-        print("GPU is not available. Using CPU.")
-        device = torch.device("cpu")
-
-    return device
 
 def get_cli_args():
     """ Retreives commandline arguments from user.
