@@ -9,7 +9,7 @@ We follow their naming convention for prompting techniques.
 
 """
 
-from prompter import Prompter 
+from .prompter import Prompter 
 
 class MisinfoPrompter(Prompter):
     """ Prompter for misinformation detection.
@@ -32,16 +32,6 @@ class MisinfoPrompter(Prompter):
         prompt += self._make_multiple_choice_str() + self._make_constraint_str()
 
         return prompt
-
-if __name__ == "__main__":
-    print("PRINTING EXAMPLE PROMPTS")
-
-    labels = ["Misinformation", "Trustworthy"]
-    column_map = {"text": "headline"}
-    prompter = MisinfoPrompter(labels, column_map)
-
     
-    print(prompter.simple(**{"headline": "THIS IS AN EXAMPLE HEADLINE"}))
-
-    
-        
+    def CoT(self):
+        raise NotImplementedError

@@ -9,7 +9,7 @@ We follow their naming convention for prompting techniques.
 
 """
 
-from prompter import Prompter
+from .prompter import Prompter
 
 class StancePrompter(Prompter):
     """ Defines functionality for all stance detection prompts.

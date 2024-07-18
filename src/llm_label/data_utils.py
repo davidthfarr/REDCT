@@ -5,7 +5,8 @@ the LLM labeling process.
 
 """
 
-import os
+import torch
+import pandas as pd
 
 from prompters.misinfo_prompter import MisinfoPrompter
 from prompters.stance_prompter import StancePrompter
@@ -188,6 +189,11 @@ def is_tsv_path(path):
     return True if path[-4:] == ".tsv" else False
 
 def check_gpu():
+    """
+    Helper function to check hardware architecture for available GPUs.
+    Args: None
+    Returns: devices (List[device]): A list of torch devices for each GPU avail.
+    """
     if torch.cuda.is_available():
         device_count = torch.cuda.device_count()
         device_names = [torch.cuda.get_device_name(i) for i in range(device_count)]
@@ -198,5 +204,4 @@ def check_gpu():
         return devices
 
     else:
-        print("GPU is not available. Exiting Program.")
         return None
