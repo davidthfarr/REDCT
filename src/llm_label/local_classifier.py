@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from openai_label import get_logprobs
+from data_utils import get_logprobs
 
 class LocalClassifier:
     """
