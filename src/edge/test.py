@@ -105,19 +105,22 @@ def main():
     if model_info["model_arg"] == "db":
         # Initialize for DistilBert
         model_name = "distilbert-base-cased"
-        tokenizer = DistilBertTokenizer.from_pretrained(model_name)
+        tokenizer = DistilBertTokenizer.from_pretrained(model_name,
+                                                       clean_up_tokenization_spaces=True)
         model = DistilBertClassifier(num_classes)
 
     elif model_info["model_arg"] == "rb":
         # Initialize for RoBERTa
         model_name = "roberta-base"
-        tokenizer = RobertaTokenizer.from_pretrained(model_name, truncation=True)
+        tokenizer = RobertaTokenizer.from_pretrained(model_name, truncation=True,
+                                                    clean_up_tokenization_spaces=True)
         model = BertBasedClassifier(RobertaModel, model_name, num_classes)
 
     elif model_info["model_arg"] == "rbL":
         # Initialize for RoBERTa-L
         model_name = 'roberta-large'
-        tokenizer = RobertaTokenizer.from_pretrained(model_name, truncation=True)
+        tokenizer = RobertaTokenizer.from_pretrained(model_name, truncation=True,
+                                                    clean_up_tokenization_spaces=True)
         model = BertBasedClassifier(RobertaModel, model_name, num_classes)
 
     else:

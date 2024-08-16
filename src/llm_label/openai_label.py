@@ -17,7 +17,7 @@ from sklearn.metrics import accuracy_score, f1_score
 
 from openai_api_interface import OpenAPI, OpenAPI_CoT
 
-from data_utils import read_data_to_df, get_meta_data, get_metrics, get_logprobs
+from data_utils import read_data_to_df, get_meta_data, get_metrics, get_logprobs, get_data_args
 
 def get_cli_args():
     """
@@ -32,14 +32,15 @@ def get_cli_args():
                               '"ibc", or "humour".', 
                          required=True)
     parser.add_argument('-p', type=str,
-                        help= 'Prompting type: "zero" or "few"',
+                        help= 'Prompting type: "zero" or "cot"',
                         required=False, default="zero")
     parser.add_argument('-n', type=int,
-                        help= 'Number of documents to sample to classify stance' \
+                        help= 'Number of documents to sample to classify stance. ' \
                             "Default set to 10. To run with all set to -1.",
                         required=False, default=10)
     parser.add_argument('-m', type=str,
-                        help= 'OpenAI model to use for classification.',
+                        help= 'OpenAI model to use for classification. Default ' \
+                            'set to GPT-3.5-turbo.',
                         required=False, default="gpt-3.5-turbo")
     parser.add_argument('--seed', type = int,
                         help="The random state or seed for sampling",
@@ -59,7 +60,7 @@ def main():
         os.makedirs(args.o)
 
     # Get OpenAI API token 
-    api_key = os.get_env("OPENAI_API_TOKEN")
+    api_key = os.getenv("OPENAI_API_TOKEN")
 
     if api_key is None:
         print(f"Could not get Open AI API token environment variable! {err}.")

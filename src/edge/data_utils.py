@@ -61,7 +61,7 @@ class DatasetLabeledByLLM(torch.utils.data.Dataset):
 def load_from_LLM(path):
     """
     Function to load training data from the results from our labeled with the
-    LLM.
+    LLM. 
 
     Args:
         - path (str): Path to experimentation folder. The folder must contain
@@ -89,7 +89,7 @@ def load_from_LLM(path):
         label_col = "Stance"
         label_map = {"Against": 0, "For": 1, "Neutral": 2}
 
-    elif meta["data"] == "misinfo":
+    elif meta["data"] == "Misinfo":
         text_col = "headline"
         label_col = "gold_label"
         label_map = {"Misinformation": 0, "Trustworthy": 1}
@@ -137,7 +137,7 @@ def load_test_set(dataset_name):
     if dataset_name == "SemEval2016":
         test_tweets, test_labels = load_semeval_test()
 
-    elif dataset_name == "misinfo":
+    elif dataset_name == "Misinfo":
         test_tweets, test_labels = load_misinfo_test()
 
     elif dataset_name == "humour":
@@ -164,7 +164,7 @@ def load_semeval_test():
         - raw_text (List(str)): List of raw_text strings encoded as ISO-8859-1
         - labels (List(Int)): A list of integers which correspond to the label map
     """
-    file_name = "../data/SemEval2016/testdata-taskA-all-annotations.txt"
+    file_name = "./data/SemEval2016/testdata-taskA-all-annotations.txt"
     label_map = {"AGAINST": 0, "FAVOR": 1, "NONE": 2}
     data = pd.read_table(file_name, encoding='ISO-8859-1')
 
@@ -186,12 +186,56 @@ def load_misinfo_test():
     - labels (List(Int)): A list of integers which correspond to the label map
     
     """
-    file_name = "../data/misinfo/test.tsv"
+    file_name = "./data/misinfo/test.tsv"
     label_map = {"misinfo": 0, "real": 1}
     data = pd.read_csv(file_name, delimiter = "\t")
 
     raw_tweets = data["headline"].to_list()
     labels = data["gold_label"].apply(lambda x: label_map[x]).to_list()
+    
+    return raw_tweets, labels
+
+def load_ideology_test():
+    """ Helper function to load the ideology test data.
+    
+    Note: The filepath is hard-coded in this instance and names of labels in 
+        the test data are hard coded to align with the load_from_LLM utility
+        function.
+    
+    Args: None
+    Returns:
+    - raw_text (List(str)): List of raw_text strings encoded as ISO-8859-1
+    - labels (List(Int)): A list of integers which correspond to the label map
+    
+    """
+    file_name = "./data/ideology/test.csv"
+    label_map = {"liberal": 0, "conservative": 1}
+    data = pd.read_csv(file_name)
+    
+    raw_tweets = data["articles"].to_list()
+    labels = data["label"].apply(lambda x: label_map[x]).to_list()
+    
+    return raw_tweets, labels
+
+def load_media_test():
+    """ Helper function to load the ideology test data.
+    
+    Note: The filepath is hard-coded in this instance and names of labels in 
+        the test data are hard coded to align with the load_from_LLM utility
+        function.
+    
+    Args: None
+    Returns:
+    - raw_text (List(str)): List of raw_text strings encoded as ISO-8859-1
+    - labels (List(Int)): A list of integers which correspond to the label map
+    
+    """
+    file_name = "./data/media/test_cleaned.csv"
+    label_map = {"left": 0, "center": 1, "right": 2}
+    data = pd.read_csv(file_name)
+    
+    raw_tweets = data["text"].to_list()
+    labels = data["label"].apply(lambda x: label_map[x]).to_list()
     
     return raw_tweets, labels
 
@@ -208,7 +252,7 @@ def load_humour_test():
     - labels (List(Int)): A list of integers which correspond to the label map
     
     """
-    file_name = "../data/humour/test.csv"
+    file_name = "./data/humour/test.csv"
     label_map = {0: 0, 1: 1}
     data = pd.read_csv(file_name)
     
@@ -229,7 +273,7 @@ def load_ibc_test():
         - raw_text (List(str)): List of raw_text strings encoded as ISO-8859-1
         - labels (List(Int)): A list of integers which correspond to the label map
     """
-    file_name = "../data/IBC/test_ibc.csv"
+    file_name = "./data/IBC/test_ibc.csv"
     label_map = {"Conservative": 0, "Neutral": 1, "Liberal": 2}
     data = pd.read_table(file_name, delimiter =',')#, encoding='ISO-8859-1')
 

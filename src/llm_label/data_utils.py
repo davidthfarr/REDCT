@@ -5,8 +5,11 @@ the LLM labeling process.
 
 """
 
+import os
 import torch
 import pandas as pd
+import numpy as np
+from sklearn.metrics import accuracy_score, f1_score
 
 from prompters.misinfo_prompter import MisinfoPrompter
 from prompters.stance_prompter import StancePrompter
@@ -16,7 +19,8 @@ from prompters.ibc_prompter import IBCPrompter
 def get_data_args(dataset_name):
     """
     A function that gets all the data arguments of the user provided dataset 
-    name.
+    name. We hard code the paths here. This is meant to be called from the 
+    top level directory.
 
     Args:
         - dataset_name (str): The name of the dataset.
@@ -38,10 +42,10 @@ def get_data_args(dataset_name):
 
         # Check if train or test
         if dataset_name == "SemEval2016":
-            data_path = "../data/SemEval2016/trainingdata-all-annotations.txt"
+            data_path = "./data/SemEval2016/trainingdata-all-annotations.txt"
             
         else:
-            data_path = "../data/SemEval2016/testdata-taskA-all-annotations.txt"
+            data_path = "./data/SemEval2016/testdata-taskA-all-annotations.txt"
 
     elif dataset_name == "Misinfo" or dataset_name == "Misinfo-test":
         column_map = {"label": "gold_label", "text": "headline"}
@@ -49,11 +53,11 @@ def get_data_args(dataset_name):
         prompter = MisinfoPrompter(label_map.values(), column_map)
 
         # Check if train or test
-        if dataset_name == "misinfo":
-            data_path = "../data/misinfo/train.tsv"
+        if dataset_name == "Misinfo":
+            data_path = "./data/misinfo/train.tsv"
             
         else:
-            data_path = "../data/misinfo/test.tsv"
+            data_path = "./data/misinfo/test.tsv"
 
     elif dataset_name == "humour" or dataset_name == "humour-test":
         column_map = {"label": "label", "text": "joke"}
@@ -61,10 +65,10 @@ def get_data_args(dataset_name):
         prompter = HumourPrompter(label_map.values(), column_map)
 
         if dataset_name == "humour":
-            data_path = "../data/humour/train.csv"
+            data_path = "./data/humour/train.csv"
 
         else:
-            data_path = "../data/humour/test.csv"
+            data_path = "./data/humour/test.csv"
 
     elif dataset_name == "ibc" or dataset_name == "ibc-test":
         column_map = {"label": "leaning", "text": "sentence"}
@@ -72,10 +76,10 @@ def get_data_args(dataset_name):
         prompter = IBCPrompter(label_map.values(), column_map)
 
         if dataset_name == "ibc":
-            data_path = "../data/IBC/train_ibc.csv"
+            data_path = "./data/IBC/train_ibc.csv"
 
         else:
-            data_path = "../data/IBC/test_ibc.csv"
+            data_path = "./data/IBC/test_ibc.csv"
 
     else:
         data_path, column_map, label_map, prompter = None, None, None, None
@@ -168,7 +172,7 @@ def get_meta_data(args):
     Helper function to get metadata from the argument parser.
     """
     meta = {}
-    meta["data"] = dataset_name 
+    meta["data"] = args.d
     meta["prompt_type"] = args.p 
     meta["n"] = args.n
     meta["seed"] = args.seed
