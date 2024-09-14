@@ -13,7 +13,7 @@ The repo is organized as follows:
 
 We provide a few command line tools to make implementing and evaluation easier. All of the code and scripts are designed to run from this top-level directory. We also provide some examples scripts in the scripts directory.
 
-The code in this directory is designed to run on systems with cuda support!
+The code in this repository is designed to run on systems with cuda support!
 
 ### LLM Labeling At 'the Hub'
 
