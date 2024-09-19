@@ -1,8 +1,7 @@
-""" mistral_label.py
+""" llama_label.py
 
 A CLI that provides an interface to the local_classifier. This script will label
-documents using Mistral7B-Instruct.
-
+documents using LLama3.1-8B-instruct.
 
 """
 
@@ -84,7 +83,7 @@ def main():
 
     # Run inference
     print("Getting Labels (this may take a few moments)...")
-    model_name = "mistralai/Mistral-7B-Instruct-v0.2"
+    model_name = "meta-llama/Meta-Llama-3.1-8B-Instruct"
     start_time = time.time()
     classifier = LocalClassifier(model_name, label_map.values(), hf_token)
     

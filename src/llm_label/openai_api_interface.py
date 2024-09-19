@@ -43,11 +43,12 @@ class OpenAPI:
         """
         for prompt in tqdm(prompt_list, disable = (not verbose)):
             resp = self.client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model=self.model_name,
                 messages = [{"role": "user", "content": prompt}],
                 logprobs = logprobs,
                 top_logprobs = top_logprobs,
-                logit_bias = logit_bias
+                logit_bias = logit_bias,
+                temperature = 0
             )
             self.responses.append(resp)
     
@@ -131,7 +132,7 @@ class OpenAPI_CoT(OpenAPI):
             both_resp = []
 
             resp1 = self.client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model=self.model_name,
                 messages = [{"role": "user", "content": f"{prompt1}"}],
             )
 
@@ -139,13 +140,14 @@ class OpenAPI_CoT(OpenAPI):
             resp1_text = resp1.choices[0].message.content
 
             resp2 = self.client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model=self.model_name,
                 messages = [{"role": "user", "content": prompt1},
                             {"role": "assistant", "content": resp1_text},
                             {"role": "user", "content": prompt2}],
                 logprobs = logprobs,
                 top_logprobs = top_logprobs,
-                logit_bias = logit_bias
+                logit_bias = logit_bias,
+                temperature = 0
             )
 
             both_resp.append(resp2)
