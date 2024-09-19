@@ -21,7 +21,7 @@ There are a few options for LLM data labeling.
 
 1. `./src/llm_label/mistral_label.py` - Loads mistral7B-instruct across all available GPUs (distributed with the package accelerate) and labels the specified dataset.
 2. `./src/llm_label/distribut_mistral_label.py` - Distributes the labeling process by splitting the data and loading mistral7B-instruct on each available GPU. This is the simplest (but most expensive) from of parallelization.
-3. `./src/llm_label/openai_label.py` - Queries OpenAI API to label data with GPT-3.5-turbo. Other models may be supported, but the code is tested with GPT-3.5-turbo.
+3. `./src/llm_label/openai_label.py` - Queries OpenAI API to label data with GPT-3.5-turbo. Other models may be supported, but the code is tested with GPT-3.5-turbo and GPT-4o.
 
 Each of the scripts is executable with various command line arguments. Please use the `--help` or `-h` to check the CLI for each labeling method. 
 
@@ -56,10 +56,9 @@ $ python ./src/edge/test.py -h
 
 ### Example Scripts
 
-- `/scripts/label_train_humour.sh`- contains an example for labeling the humour dataset using mistral7B. Then, we finetune distilbert with 50% randomly sampled expert labeling, and evaluate the performance on a held-out test set.
 - `/scripts/label_train_ibc.sh` - contains an example that distributes the labeling process onto all available GPUs. Then, we finetune distilbert with 10% confidence informed expert labeling, and evaluate the performance on a held-out test set.
 - `/scripts/label_train_misinfo.sh` - contains an example for labeling with Open AIs GPT-3.5-turbo. Then, we finetune a RoBERTa-Large model naively on the labels, and evaluate the performance on a held-out test set.
-- `/scripts/label_train_stance.sh` - contains an example for labeling with Open AIs GPT-3.5-turbo with CoT prompting. Then, we finetune a RoBERTa model with 10% confidence informed sampling expert labeling, learning with soft labels, and evaluate the performance on a held-out test set.
+- `/scripts/label_train_stance.sh` - contains an example for labeling with Open AIs GPT-4o with CoT prompting. Then, we finetune a RoBERTa model with 10% confidence informed sampling expert labeling, learning with soft labels, and evaluate the performance on a held-out test set.
 
 Given the examples and the scripts, it should be relatively simple to reproduce all the experiments presented in the paper.
 
